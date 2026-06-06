@@ -29,6 +29,8 @@ function EntryDetail() {
   }));
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   const entry = entries.find((e) => e.id === detailId);
   if (!entry) return null;
@@ -45,11 +47,20 @@ function EntryDetail() {
     day: 'numeric', month: 'short', year: 'numeric',
   });
 
-  const handleDelete = () => {
-    if (confirmDelete) {
-      deleteEntry(entry.id);
-    } else {
-      setConfirmDelete(true);
+  const handleClose = () => {
+    if (!deleting) { closeDetail(); setConfirmDelete(false); setDeleteError(null); }
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteEntry(entry.id);
+    } catch (err) {
+      setDeleteError(err.message || 'Delete failed. Please try again.');
+      setDeleting(false);
+      setConfirmDelete(false);
     }
   };
 
@@ -57,7 +68,7 @@ function EntryDetail() {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(26, 12, 6, 0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) { closeDetail(); setConfirmDelete(false); } }}
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
       role="dialog"
       aria-modal="true"
       aria-label={entry.title}
@@ -88,8 +99,9 @@ function EntryDetail() {
               </h2>
             </div>
             <button
-              onClick={() => { closeDetail(); setConfirmDelete(false); }}
-              className="p-1.5 text-ink-400 hover:text-ink-900 hover:bg-cream-200 rounded-lg transition-colors cursor-pointer shrink-0 mt-1"
+              onClick={handleClose}
+              disabled={deleting}
+              className="p-1.5 text-ink-400 hover:text-ink-900 hover:bg-cream-200 rounded-lg transition-colors cursor-pointer shrink-0 mt-1 disabled:opacity-40"
               title="Close"
             >
               <XIcon size={20} />
@@ -136,6 +148,13 @@ function EntryDetail() {
           </div>
         )}
 
+        {/* Delete error */}
+        {deleteError && (
+          <div className="mx-6 mb-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <p className="text-xs text-red-700 font-ui">{deleteError}</p>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="px-6 py-4 border-t border-cream-200 bg-cream-100/60 rounded-b-2xl flex items-center justify-between gap-3">
           <p className="text-xs text-ink-400 font-ui">Added {createdDate}</p>
@@ -144,17 +163,24 @@ function EntryDetail() {
               <>
                 <span className="text-xs text-red-600 font-ui font-medium">Are you sure?</span>
                 <button
-                  onClick={() => setConfirmDelete(false)}
-                  className="px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-cream-200 rounded-lg transition-colors cursor-pointer font-ui border border-cream-300"
+                  onClick={() => { setConfirmDelete(false); setDeleteError(null); }}
+                  disabled={deleting}
+                  className="px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-cream-200 rounded-lg transition-colors cursor-pointer font-ui border border-cream-300 disabled:opacity-40"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer font-ui"
+                  disabled={deleting}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer font-ui disabled:bg-red-400 disabled:cursor-not-allowed"
                 >
-                  <TrashIcon size={14} />
-                  Delete
+                  {deleting ? (
+                    <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                  ) : <TrashIcon size={14} />}
+                  {deleting ? 'Deleting…' : 'Delete'}
                 </button>
               </>
             ) : (
