@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Component } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import EntryForm from './components/EntryForm';
@@ -11,6 +11,24 @@ import TopRated from './pages/TopRated';
 import SearchPage from './pages/Search';
 import useVaultStore from './store/useVaultStore';
 import { VaultIcon, XIcon } from './components/icons';
+
+export class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: '2rem', fontFamily: 'monospace', background: '#fff1f0', color: '#7f1d1d', minHeight: '100vh' }}>
+          <h2 style={{ marginBottom: '1rem' }}>App crashed — check the browser console for the full stack trace</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', background: '#fee2e2', padding: '1rem', borderRadius: '8px' }}>
+            {this.state.error.message}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function LoadingScreen() {
   return (
