@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import useVaultStore, { CATEGORIES } from '../store/useVaultStore';
+import { useShallow } from 'zustand/shallow';
 import { XIcon, VaultIcon } from './icons';
 
 const BLANK = {
@@ -13,12 +14,12 @@ const BLANK = {
 };
 
 function EntryForm() {
-  const { formModal, closeForm, addEntry, updateEntry } = useVaultStore((s) => ({
+  const { formModal, closeForm, addEntry, updateEntry } = useVaultStore(useShallow((s) => ({
     formModal: s.formModal,
     closeForm: s.closeForm,
     addEntry: s.addEntry,
     updateEntry: s.updateEntry,
-  }));
+  })));
 
   const isEdit = !!formModal.entry;
   const [form, setForm] = useState(BLANK);

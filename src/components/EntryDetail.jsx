@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useVaultStore, { CATEGORY_COLORS } from '../store/useVaultStore';
+import { useShallow } from 'zustand/shallow';
 import { XIcon, EditIcon, TrashIcon, MapPinIcon, CalendarIcon, TagIcon, StarIcon } from './icons';
 
 function StarRow({ rating }) {
@@ -20,13 +21,13 @@ function StarRow({ rating }) {
 }
 
 function EntryDetail() {
-  const { detailId, entries, closeDetail, openForm, deleteEntry } = useVaultStore((s) => ({
+  const { detailId, entries, closeDetail, openForm, deleteEntry } = useVaultStore(useShallow((s) => ({
     detailId: s.detailId,
     entries: s.entries,
     closeDetail: s.closeDetail,
     openForm: s.openForm,
     deleteEntry: s.deleteEntry,
-  }));
+  })));
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);

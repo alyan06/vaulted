@@ -10,6 +10,7 @@ import ByLocation from './pages/ByLocation';
 import TopRated from './pages/TopRated';
 import SearchPage from './pages/Search';
 import useVaultStore from './store/useVaultStore';
+import { useShallow } from 'zustand/shallow';
 import { VaultIcon, XIcon } from './components/icons';
 
 export class ErrorBoundary extends Component {
@@ -73,14 +74,14 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { fetchEntries, loading, error, clearError, formModal, detailId } = useVaultStore((s) => ({
+  const { fetchEntries, loading, error, clearError, formModal, detailId } = useVaultStore(useShallow((s) => ({
     fetchEntries: s.fetchEntries,
     loading: s.loading,
     error: s.error,
     clearError: s.clearError,
     formModal: s.formModal,
     detailId: s.detailId,
-  }));
+  })));
 
   useEffect(() => {
     fetchEntries();
