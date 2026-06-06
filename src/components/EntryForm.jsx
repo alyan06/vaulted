@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import useVaultStore, { CATEGORIES } from '../store/useVaultStore';
 import { useShallow } from 'zustand/shallow';
-import { XIcon, VaultIcon } from './icons';
+import { XIcon, VaultIcon, StarIcon } from './icons';
+
+const NO_LOCATION_SUBCATEGORIES = new Set(['Movie', 'Show', 'Concert', 'Book', 'Game']);
 
 const BLANK = {
   title: '',
@@ -26,6 +28,7 @@ function EntryForm() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [hoverRating, setHoverRating] = useState(0);
 
   useEffect(() => {
     if (formModal.entry) {
@@ -158,33 +161,35 @@ function EntryForm() {
               </div>
             </div>
 
-            {/* Location */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="ef-city" className={labelClass}>City</label>
-                <input
-                  id="ef-city"
-                  type="text"
-                  value={form.location.city}
-                  onChange={(e) => setLoc('city', e.target.value)}
-                  placeholder="e.g. Lahore"
-                  className={inputClass}
-                  disabled={submitting}
-                />
+            {/* Location — hidden for non-physical subcategories */}
+            {!NO_LOCATION_SUBCATEGORIES.has(form.subcategory) && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="ef-city" className={labelClass}>City</label>
+                  <input
+                    id="ef-city"
+                    type="text"
+                    value={form.location.city}
+                    onChange={(e) => setLoc('city', e.target.value)}
+                    placeholder="e.g. Lahore"
+                    className={inputClass}
+                    disabled={submitting}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="ef-country" className={labelClass}>Country</label>
+                  <input
+                    id="ef-country"
+                    type="text"
+                    value={form.location.country}
+                    onChange={(e) => setLoc('country', e.target.value)}
+                    placeholder="e.g. Pakistan"
+                    className={inputClass}
+                    disabled={submitting}
+                  />
+                </div>
               </div>
-              <div>
-                <label htmlFor="ef-country" className={labelClass}>Country</label>
-                <input
-                  id="ef-country"
-                  type="text"
-                  value={form.location.country}
-                  onChange={(e) => setLoc('country', e.target.value)}
-                  placeholder="e.g. Pakistan"
-                  className={inputClass}
-                  disabled={submitting}
-                />
-              </div>
-            </div>
+            )}
 
             {/* Date */}
             <div>
@@ -199,27 +204,44 @@ function EntryForm() {
               />
             </div>
 
-            {/* Rating */}
+            {/* Rating — 10-star selector */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="ef-rating" className={labelClass}>Rating</label>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display text-2xl font-bold text-terra-500">{form.rating}</span>
+              <div className="flex items-center justify-between mb-3">
+                <label className={labelClass}>Rating</label>
+                <div className="flex items-center gap-1">
+                  <span className="font-display text-2xl font-bold text-gold-500">
+                    {hoverRating || form.rating}
+                  </span>
                   <span className="text-ink-400 text-sm font-ui">/10</span>
                 </div>
               </div>
-              <input
-                id="ef-rating"
-                type="range"
-                min={1} max={10} step={1}
-                value={form.rating}
-                onChange={(e) => set('rating', Number(e.target.value))}
-                disabled={submitting}
-                style={{
-                  background: `linear-gradient(to right, var(--color-terra-500) 0%, var(--color-terra-500) ${(form.rating - 1) / 9 * 100}%, var(--color-cream-300) ${(form.rating - 1) / 9 * 100}%, var(--color-cream-300) 100%)`
-                }}
-              />
-              <div className="flex justify-between text-xs text-ink-300 mt-1 font-ui">
+              <div
+                className="flex items-center gap-0.5"
+                onMouseLeave={() => setHoverRating(0)}
+              >
+                {Array.from({ length: 10 }, (_, i) => {
+                  const n = i + 1;
+                  const active = n <= (hoverRating || form.rating);
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => set('rating', n)}
+                      onMouseEnter={() => setHoverRating(n)}
+                      className="p-0.5 transition-transform hover:scale-110 cursor-pointer disabled:cursor-not-allowed"
+                      aria-label={`Rate ${n} out of 10`}
+                    >
+                      <StarIcon
+                        size={26}
+                        filled={active}
+                        className={active ? 'text-gold-500' : 'text-cream-300'}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between text-xs text-ink-300 mt-1.5 font-ui">
                 <span>1 · Meh</span>
                 <span>5 · Good</span>
                 <span>10 · Perfect</span>
